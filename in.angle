@@ -1,0 +1,32 @@
+# Semiflexible polymer angle atom_style
+units		lj
+atom_style	angle
+special_bonds   fene
+neighbor	1.0 bin
+neigh_modify	every 1 delay 10
+
+bond_style      fene
+angle_style     harmonic
+pair_style	lj/cut 1.12
+pair_modify	shift yes
+
+#Lee archivo angle.data
+read_data	angle.data
+
+pair_coeff	1 1 1.0 1.0 1.12
+bond_coeff	1 30.0 1.5 1.0 1.0
+angle_coeff     1 300 160.0
+fix		1 all nve
+fix		2 all langevin 1.0 1.0 10.0 904297
+thermo          100
+timestep	0.001
+run		10000
+
+
+
+
+
+
+
+
+

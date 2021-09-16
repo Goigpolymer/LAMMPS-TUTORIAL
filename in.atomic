@@ -1,0 +1,19 @@
+# 3d Lennard-Jones melt atomic atom_style
+
+units		lj
+atom_style	atomic
+
+pair_style	lj/cut 2.5
+
+#Lee el archivo atomic.data
+read_data       atomic.data
+
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 10 delay 0 check no
+
+fix		1 all nve
+thermo		100
+run		10000
+

@@ -1,0 +1,25 @@
+# Ellipsoids in LJ background fluid
+
+units	     lj
+atom_style   ellipsoid
+dimension    3
+
+pair_style   gayberne 1.0 3.0 1.0 4.0
+
+#Lee archivo ellipse.data
+read_data    ellipse.data
+
+pair_coeff   1 1 3.0 1.0 1 1 1 1 1 1 2.5
+pair_coeff   1 2 3.0 1.0 1 1 1 0 0 0
+pair_coeff   2 2 1.0 1.0 1 1 0.2 0 0 0
+
+neighbor     0.8 bin
+fix	     1 all nvt/asphere temp 1.0 1.0 10 
+
+thermo	     100
+
+timestep     0.001
+
+run	     1000000
+
+
