@@ -1,0 +1,98 @@
+#2d corono-corona SOFT CORE WALL+TANH  model
+ 
+#variable t index      0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+variable t index       1.0 
+#variable t index      0.2
+#########################################LENNARDJONESGAUSS##############
+#package        gpu 1
+dimension       2
+units	        lj
+atom_style      atomic
+neighbor	0.4 bin
+neigh_modify	every 1 delay 1 check yes
+
+ 
+lattice         sq  $t
+region          box block 0 40 0 40 -0.5 0.5
+create_box      1 box
+create_atoms    1 box
+mass	        1 1.0
+velocity	all create 1.0 87287
+
+variable       K equal $t*10
+######################################POTENTIALDEFINITIO################
+pair_style      table linear 1000      
+#pair_style      table/gpu linear 1000      
+pair_coeff      1 1  CG.table C-C 4.5
+pair_write      1 1 1000 r 0.6 4.5 SCWtanh.txt LJG
+
+
+#################################LANGEVIN###############################
+fix              1 all enforce2d
+fix              2 all nve
+fix              3 all langevin 1.0 1.0 1.0 234949 
+thermo           1000
+timestep	  0.001
+run              100000
+
+unfix            2
+unfix            3
+reset_timestep   0
+######################################NVT ENSEMBLE########################
+#fix              2 all nvt temp 1.0 0.1 $(100*dt)
+fix              2 all nvt temp 1.0 0.1 1.0
+dump	         2 all atom 1000 dump.$K
+
+thermo           1000
+timestep	  0.001
+run              1000000
+unfix            2
+undump           2
+reset_timestep   0
+########################################PRODUCTION#######################
+
+variable   steps equal 100000
+fix              2 all nvt temp 0.1 0.1 1.0 
+
+
+#Radial distribution function
+compute         RDF all rdf 200 1 1 cutoff 4.5
+fix             RDF_OUT all ave/time 1 1000 ${steps}  c_RDF[*] file rdf$K.out mode vector
+
+#Diffraction Pattern 
+dump            3 all custom ${steps} difracction$K.xyz x y z ix iy iz
+
+
+#Structural Properties
+#Hexatic Parameter
+#compute          h6 all hexorder/atom  degree 6 nnn 6 cutoff 1.5
+#dump		 4 all custom 1000  dump.hex.* id  c_h6[1] c_h6[2]   
+
+
+#Thermodynamical Properties
+variable         T equal temp
+variable         P equal press
+variable         d equal density
+variable         dt equal 0.001
+variable         time equal step*dt
+fix              extra all print 1000 "${time} $T $P $d" file Thermodynamics$K.dat screen no
+
+
+#Trajectories
+dump	         2 all atom 1000 dump.$K.nvt
+
+thermo           1000
+timestep	  0.001
+run              ${steps}
+
+write_data        Corecorona$t.data
+clear
+next t
+jump in.table
+
+
+
+
+
+
+
